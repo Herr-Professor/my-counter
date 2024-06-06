@@ -1,0 +1,30 @@
+#include "imports/stdlib.fc";
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    ;; this contract takes number with the contract balance, value of the incoming message, cell withe the original message, and a slice in_msg_body that contains only the body of the received message.
+    ;; impure is a keyword that tells the compiler it's execution cannot be removed during optimization
+    
+    throw_if(35, in_msg_body.slice_bits() < 32);
+
+    int n = in_msg_body~load_uint(32); ;;this code is used to read an integer from the received slice with the message body
+    ;; load_uint is a function from the standard FunC library. It reads and return an unsigned integer of a specified size from the slice.
+    
+    slice ds = get_data().begin_parse(); ;;here we created a variable ds, we put the received slice into it
+    int total = ds~load_uint(64); ;; here we created a variable total, we are reading the 64 bit slice into it for summation
+
+    total += n; ;; total + n = total
+
+    set_data(begin_cell().store_uint(total, 64).end_cell());
+    ;; begin_cell() - creates a builder for the future data cell
+    ;; store_uint() - writes the value to the builder
+    ;; end_cell() - converts the builder to a cell
+    ;; set_data() - writes the cell to register c4   
+}
+
+int get_total() method_id { ;; method_id specifier allows calling a function by it's name
+    ;; this function returns gets total and returns it as an integer
+    slice ds = get_data().begin_parse();
+    int total = ds~load_uint(64);
+
+    return total;
+}
